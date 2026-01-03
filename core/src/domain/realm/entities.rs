@@ -55,6 +55,8 @@ pub struct RealmSetting {
     pub user_registration_enabled: bool,
     pub forgot_password_enabled: bool,
     pub remember_me_enabled: bool,
+    pub magic_link_enabled: Option<bool>,
+    pub magic_link_ttl_minutes: Option<u32>,
     pub updated_at: DateTime<Utc>,
 }
 
@@ -63,6 +65,8 @@ pub struct RealmLoginSetting {
     pub user_registration_enabled: bool,
     pub forgot_password_enabled: bool,
     pub remember_me_enabled: bool,
+    pub magic_link_enabled: bool,
+    pub magic_link_ttl_minutes: u32,
 }
 
 impl From<RealmSetting> for RealmLoginSetting {
@@ -71,6 +75,8 @@ impl From<RealmSetting> for RealmLoginSetting {
             forgot_password_enabled: value.forgot_password_enabled,
             remember_me_enabled: value.remember_me_enabled,
             user_registration_enabled: value.user_registration_enabled,
+            magic_link_enabled: value.magic_link_enabled.unwrap_or(false),
+            magic_link_ttl_minutes: value.magic_link_ttl_minutes.unwrap_or(60), // Default 1 hour
         }
     }
 }
@@ -86,6 +92,8 @@ impl RealmSetting {
             forgot_password_enabled: false,
             remember_me_enabled: false,
             user_registration_enabled: false,
+            magic_link_enabled: Some(false),  // Default disabled
+            magic_link_ttl_minutes: Some(60), // Default 1 hour
             updated_at: now,
         }
     }
