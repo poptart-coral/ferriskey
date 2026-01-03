@@ -90,6 +90,12 @@ pub trait UserRepository: Send + Sync {
         realm_id: RealmId,
     ) -> impl Future<Output = Result<Vec<User>, CoreError>> + Send;
 
+    fn find_by_email_in_realm(
+        &self,
+        email: String,
+        realm_id: RealmId,
+    ) -> impl Future<Output = Result<User, CoreError>> + Send;
+
     fn bulk_delete_user(
         &self,
         ids: Vec<Uuid>,

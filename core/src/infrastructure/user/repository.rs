@@ -173,6 +173,27 @@ impl UserRepository for PostgresUserRepository {
         Ok(users)
     }
 
+    async fn find_by_email_in_realm(
+        &self,
+        email: String,
+        realm_id: RealmId,
+    ) -> Result<User, CoreError> {
+        let users_model = crate::entity::users::Entity::find()
+            .filter(crate::entity::users::Column::Email.eq(email.clone()))
+            .filter(crate::entity::users::Column::RealmId.eq::<Uuid>(realm_id.into()))
+            .find_also_related(crate::entity::realms::Entity)
+            .all(&self.db)
+            .await
+            .map_err(|e| {
+                error!("error retrieving user by username: {:?}", e);
+                CoreError::NotFound
+            })?;
+
+        let user_model = users_model.first().cloned();
+        let (user_model, _realm_model) = user_model.ok_or(CoreError::NotFound)?;
+        Ok(user_model.into())
+    }
+
     async fn bulk_delete_user(&self, ids: Vec<Uuid>) -> Result<u64, CoreError> {
         let rows = crate::entity::users::Entity::delete_many()
             .filter(
