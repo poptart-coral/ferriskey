@@ -30,4 +30,16 @@ pub trait HasherRepository: Send + Sync + 'static {
         algorithm: &str,
         salt: &str,
     ) -> impl Future<Output = Result<bool, anyhow::Error>> + Send;
+    fn hash_magic_token(
+        &self,
+        token: &str,
+    ) -> impl Future<Output = Result<HashResult, anyhow::Error>> + Send;
+    fn verify_magic_token(
+        &self,
+        token: &str,
+        secret_data: &str,
+        hash_iterations: u32,
+        algorithm: &str,
+        salt: &str,
+    ) -> impl Future<Output = Result<bool, anyhow::Error>> + Send;
 }
