@@ -4,6 +4,8 @@ import { Form, FormField } from '@/components/ui/form'
 import BlockContent from '@/components/ui/block-content'
 import { FormSwitch } from '@/components/ui/switch'
 import FloatingActionBar from '@/components/ui/floating-action-bar'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
 
 export interface PageRealmSettingsLoginProps {
   form: UseFormReturn<RealmLoginSettingsSchema>
@@ -11,8 +13,11 @@ export interface PageRealmSettingsLoginProps {
   handleSubmit: (values: RealmLoginSettingsSchema) => void
 }
 
-export default function PageRealmSettingsLogin({ form, hasChanges, handleSubmit }: PageRealmSettingsLoginProps) {
-
+export default function PageRealmSettingsLogin({
+  form,
+  hasChanges,
+  handleSubmit,
+}: PageRealmSettingsLoginProps) {
   return (
     <div className='flex flex-col gap-6'>
       <Form {...form}>
@@ -57,6 +62,42 @@ export default function PageRealmSettingsLogin({ form, hasChanges, handleSubmit 
               )}
             />
 
+            <FormField
+              control={form.control}
+              name='magicLink'
+              render={({ field }) => (
+                <FormSwitch
+                  label='Magic Link'
+                  description='Allow users to login using magic links sent to their email'
+                  checked={field.value}
+                  onChange={field.onChange}
+                />
+              )}
+            />
+
+            {form.watch('magicLink') && (
+              <FormField
+                control={form.control}
+                name='magicLinkTtl'
+                render={({ field }) => (
+                  <div className='space-y-2'>
+                    <Label htmlFor='magicLinkTtl'>Magic Link TTL (minutes)</Label>
+                    <Input
+                      id='magicLinkTtl'
+                      type='number'
+                      placeholder='60'
+                      {...field}
+                      onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                        field.onChange(parseInt(e.target.value) || 60)
+                      }
+                    />
+                    <p className='text-sm text-muted-foreground'>
+                      How long the magic link remains valid
+                    </p>
+                  </div>
+                )}
+              />
+            )}
           </div>
         </BlockContent>
       </Form>
@@ -69,14 +110,11 @@ export default function PageRealmSettingsLogin({ form, hasChanges, handleSubmit 
             label: 'Save',
             variant: 'default',
             onClick: () => form.handleSubmit(handleSubmit)(),
-          }
+          },
         ]}
         description='You have unsaved changes in your login settings.'
         onCancel={() => form.reset()}
-
       />
-
     </div>
   )
-
 }

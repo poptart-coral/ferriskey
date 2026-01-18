@@ -12,6 +12,8 @@ const realmLoginSettingsSchema = z.object({
   userRegistration: z.boolean(),
   forgotPassword: z.boolean(),
   rememberMe: z.boolean(),
+  magicLink: z.boolean(),
+  magicLinkTtl: z.number().int().positive(),
 })
 
 export type RealmLoginSettingsSchema = z.infer<typeof realmLoginSettingsSchema>
@@ -27,7 +29,9 @@ export default function PageRealmSettingsLoginFeature() {
       forgotPassword: false,
       rememberMe: false,
       userRegistration: false,
-    }
+      magicLink: false,
+      magicLinkTtl: 60,
+    },
   })
 
   const handleSubmit = (values: RealmLoginSettingsSchema) => {
@@ -35,13 +39,15 @@ export default function PageRealmSettingsLoginFeature() {
 
     mutate({
       path: {
-        name: realm_name
+        name: realm_name,
       },
       body: {
         forgot_password_enabled: values.forgotPassword,
         remember_me_enabled: values.rememberMe,
         user_registration_enabled: values.userRegistration,
-      }
+        magic_link_enabled: values.magicLink,
+        magic_link_ttl_minutes: values.magicLinkTtl,
+      },
     })
   }
 
@@ -51,6 +57,8 @@ export default function PageRealmSettingsLoginFeature() {
       forgotPassword: data.forgot_password_enabled,
       rememberMe: data.remember_me_enabled,
       userRegistration: data.user_registration_enabled,
+      magicLink: data.magic_link_enabled,
+      magicLinkTtl: data.magic_link_ttl_minutes,
     }
   )
 
@@ -60,12 +68,11 @@ export default function PageRealmSettingsLoginFeature() {
         userRegistration: data.user_registration_enabled,
         forgotPassword: data.forgot_password_enabled,
         rememberMe: data.remember_me_enabled,
+        magicLink: data.magic_link_enabled,
+        magicLinkTtl: data.magic_link_ttl_minutes,
       })
     }
   }, [data, form])
 
-
-  return (
-    <PageRealmSettingsLogin form={form} hasChanges={hasChanges} handleSubmit={handleSubmit} />
-  )
+  return <PageRealmSettingsLogin form={form} hasChanges={hasChanges} handleSubmit={handleSubmit} />
 }
