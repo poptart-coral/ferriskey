@@ -62,6 +62,8 @@ export namespace Schemas {
     default_signing_algorithm?: (string | null) | undefined
     forgot_password_enabled: boolean
     id: string
+    magic_link_enabled?: (boolean | null) | undefined
+    magic_link_ttl_minutes?: (number | null) | undefined
     realm_id: RealmId
     remember_me_enabled: boolean
     updated_at: string
@@ -255,6 +257,8 @@ export namespace Schemas {
   export type PublicKeyCredentialRequestOptionsJSON = Record<string, unknown>
   export type RealmLoginSetting = {
     forgot_password_enabled: boolean
+    magic_link_enabled: boolean
+    magic_link_ttl_minutes: number
     remember_me_enabled: boolean
     user_registration_enabled: boolean
   }
@@ -280,6 +284,8 @@ export namespace Schemas {
     temporary: boolean
     value: string
   }>
+  export type SendMagicLinkRequest = { email: string }
+  export type SendMagicLinkResponse = { message: string }
   export type SetupOtpResponse = { issuer: string; otpauth_url: string; secret: string }
   export type TokenRequestValidator = Partial<{
     client_id: string
@@ -288,6 +294,7 @@ export namespace Schemas {
     grant_type: GrantType
     password: string | null
     refresh_token: string | null
+    scope: string | null
     username: string | null
   }>
   export type UnassignRoleResponse = { message: string; realm_name: string; user_id: string }
@@ -320,6 +327,15 @@ export namespace Schemas {
     lastname: string
     required_actions: Array<string> | null
   }>
+  export type UserInfoResponse = {
+    email?: (string | null) | undefined
+    email_verified?: (boolean | null) | undefined
+    family_name?: (string | null) | undefined
+    given_name?: (string | null) | undefined
+    name?: (string | null) | undefined
+    preferred_username?: (string | null) | undefined
+    sub: string
+  }
   export type UserRealmsResponse = { data: Array<Realm> }
   export type UserResponse = { data: User }
   export type UsersResponse = { data: Array<User> }
@@ -544,6 +560,17 @@ export namespace Endpoints {
     }
     response: Schemas.GenerateRecoveryCodesResponse
   }
+  export type post_Send_magic_link = {
+    method: 'POST'
+    path: '/realms/{realm_name}/login-actions/send-magic-link'
+    requestFormat: 'json'
+    parameters: {
+      path: { realm_name: string }
+
+      body: Schemas.SendMagicLinkRequest
+    }
+    response: Schemas.SendMagicLinkResponse
+  }
   export type get_Setup_otp = {
     method: 'GET'
     path: '/realms/{realm_name}/login-actions/setup-otp'
@@ -561,6 +588,16 @@ export namespace Endpoints {
       body: Schemas.UpdatePasswordRequest
     }
     response: Schemas.UpdatePasswordResponse
+  }
+  export type get_Verify_magic_link = {
+    method: 'GET'
+    path: '/realms/{realm_name}/login-actions/verify-magic-link'
+    requestFormat: 'json'
+    parameters: {
+      query: { token_id: string; magic_token: string; client_id: string }
+      path: { realm_name: string }
+    }
+    response: Schemas.AuthenticateResponse
   }
   export type post_Verify_otp = {
     method: 'POST'
@@ -609,7 +646,7 @@ export namespace Endpoints {
     }
     response: Schemas.PublicKeyCredentialRequestOptionsJSON
   }
-  export type get_Auth = {
+  export type get_Auth_handler = {
     method: 'GET'
     path: '/realms/{realm_name}/protocol/openid-connect/auth'
     requestFormat: 'json'
@@ -653,6 +690,15 @@ export namespace Endpoints {
       body: Schemas.TokenRequestValidator
     }
     response: Schemas.JwtToken
+  }
+  export type get_Get_userinfo = {
+    method: 'GET'
+    path: '/realms/{realm_name}/protocol/openid-connect/userinfo'
+    requestFormat: 'json'
+    parameters: {
+      path: { realm_name: string }
+    }
+    response: Schemas.UserInfoResponse
   }
   export type get_Get_roles = {
     method: 'GET'
@@ -897,6 +943,7 @@ export type EndpointByMethod = {
     '/realms/{realm_name}/login-actions/burn-recovery-code': Endpoints.post_Burn_recovery_code
     '/realms/{realm_name}/login-actions/challenge-otp': Endpoints.post_Challenge_otp
     '/realms/{realm_name}/login-actions/generate-recovery-codes': Endpoints.post_Generate_recovery_codes
+    '/realms/{realm_name}/login-actions/send-magic-link': Endpoints.post_Send_magic_link
     '/realms/{realm_name}/login-actions/update-password': Endpoints.post_Update_password
     '/realms/{realm_name}/login-actions/verify-otp': Endpoints.post_Verify_otp
     '/realms/{realm_name}/login-actions/webauthn-public-key-authenticate': Endpoints.post_Webauthn_public_key_authenticate
@@ -918,8 +965,10 @@ export type EndpointByMethod = {
     '/realms/{realm_name}/clients/{client_id}/redirects': Endpoints.get_Get_redirect_uris
     '/realms/{realm_name}/clients/{client_id}/roles': Endpoints.get_Get_client_roles
     '/realms/{realm_name}/login-actions/setup-otp': Endpoints.get_Setup_otp
-    '/realms/{realm_name}/protocol/openid-connect/auth': Endpoints.get_Auth
+    '/realms/{realm_name}/login-actions/verify-magic-link': Endpoints.get_Verify_magic_link
+    '/realms/{realm_name}/protocol/openid-connect/auth': Endpoints.get_Auth_handler
     '/realms/{realm_name}/protocol/openid-connect/certs': Endpoints.get_Get_certs
+    '/realms/{realm_name}/protocol/openid-connect/userinfo': Endpoints.get_Get_userinfo
     '/realms/{realm_name}/roles': Endpoints.get_Get_roles
     '/realms/{realm_name}/roles/{role_id}': Endpoints.get_Get_role
     '/realms/{realm_name}/seawatch/v1/security-events': Endpoints.get_Get_security_events
